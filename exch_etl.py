@@ -9,12 +9,15 @@ Created on Thu Aug 01 08:42:28 2019
 import pandas as pd
 from openpyxl import load_workbook
 from datetime import datetime
+import numpy as np
 
 from entity_mapping import entity_mapping
 from msg import msg
+import bcos
 
 
 SAIL_FIELDS_MAPPING={ "Deal Full Name":"DealName",
+                     "DealID":"DealID",
                     "EXCHANGE NAME":"Exch",
                     "Type":"DealType",
                     "Asset Manager": "AssetM",
@@ -73,7 +76,7 @@ NEW_ISS_TEMP_FIXED_FIELDS={"COLLATERAL GROUP":"all",
                            "EXCHANGE STATUS":"confirmed"}      
 
     
-def load_sail_template(filepath=r'F:\MTGE\automation\exch_etl\dailyfile\dailyfile8.xlsx'):
+def load_sail_template(filepath):
     
     if filepath.split(".")[-1] =="xlsx":
         return pd.read_excel(filepath)
@@ -156,6 +159,7 @@ def mapEntity(string):
     
 def normalize(df,index_mapping):
     
+    df=df.fillna("")
     deal={}
     tranches=[]
     for index,row in df.iterrows():
@@ -165,14 +169,26 @@ def normalize(df,index_mapping):
                     if key not in TRANCH_COLS:
                        if key == "Exch":
                            deal[key]=convertExch(row.iloc[index_mapping[key]])
-                       elif key == "AssetM" or key == "LM":    
-                           deal[key]=[mapEntity(ele) for ele in row.iloc[index_mapping[key]].split(u",")]  
+                       elif key == "AssetM" or key == "LM":
+                           deal[key]=[mapEntity(ele) for ele in row.iloc[index_mapping[key]].split(r",")] 
+                       elif key in ["LstDt"]:
+                           try:
+                               deal[key] = datetime.strptime(row.iloc[index_mapping[key]],'%m/%d/%Y')
+                           except ValueError:
+                               deal[key] = ""
+                               print "please check data format of {0}:{1}".format(key,row.iloc[index_mapping[key]])
                        else:
                            deal[key]=row.iloc[index_mapping[key]]
             for key in TRANCH_COLS:
                 if index_mapping.has_key(key):
                    if key == "IntFreq":
                       tranche[key]=convertFreq(row.iloc[index_mapping[key]])
+                   elif key in ["FirPayDt","FinalMty","LstDt","ExpMty","SetDt"]:
+                      try:
+                          tranche[key] = datetime.strptime(row.iloc[index_mapping[key]],'%m/%d/%Y')
+                      except ValueError:
+                          tranche[key] = ""
+                          print "please check data format of {0}:{1}".format(key,row.iloc[index_mapping[key]])
                    else:
                        tranche[key]=row.iloc[index_mapping[key]]  
             if tranche.has_key("FirPayDt") and tranche.has_key("FinalMty") and tranche.has_key("ClsName"):
@@ -238,7 +254,7 @@ class writer(object):
         worksheet.cell(8,2).value = "abs"
         if self.tranches:
             worksheet.cell(11,2).value = self.tranches[0]["SetDt"]
-            setdt = self.tranches[0]["SetDt"].to_datetime()
+            setdt = pd.to_datetime(self.tranches[0]["SetDt"])
             worksheet.cell(12,2).value = datetime(setdt.year,setdt.month,1,00,00,00)
             worksheet.cell(13,2).value = convertWaterfallFreq(self.tranches[0]["IntFreq"])
         self.save()
@@ -262,19 +278,25 @@ class writer(object):
 if __name__ == "__main__":
     
     finder=entity_mapping()
-    msger=msg('sliu439@bloomberg.net','sliu439@bloomberg.net')
-    df=load_sail_template()
-    index_mapping_sail= to_index(SAIL_FIELDS_MAPPING,df.columns.tolist(),"str")
-    i=0
-    for df in groupbydataframe(df):
-        deal =normalize(df,index_mapping_sail)
-        excel_writer=writer(r"F:\MTGE\automation\exch_etl\issuance_new_deal_template.xlsx",r"F:\MTGE\automation\exch_etl\issuance_new_deal_template_"+str(i)+".XLSX",deal)
-        excel_writer.write2clsinfo("Class Information")
-        excel_writer.write2collainfo("Collateral Information")
-        excel_writer.write2dealinfo("Deal Information")
-        excel_writer.write2relatedPar("Related Parties")
-        msger.send("SAIL Daily File_{0}".format(deal["DealName"]),'Please find attached deal',"issuance_new_deal_template_"+str(i)+".XLSX",r"F:\MTGE\automation\exch_etl\issuance_new_deal_template_"+str(i)+".XLSX")
-        i=i+1
-    
+    msger=msg('sliu439@bloomberg.net','apmort@bloomberg.net')
+    bcosinfo=bcos.BcosInfo("gd-mtge","gd-mtge-bcos-account","1153f598e3e026a8e710d384dbd7483b0d3724d42c2bd937ccb83bb7f469ff85")
+    res=bcos.monitor("CN_NEWS_AUTOMATION",bcosinfo,900,1,'windows')
+    for i in res:
 
+        if bcos.scan(".*_-Template-.*.xlsx",i):
+           try:
+               flag,filepath=bcos.download(i,bcosinfo,r"F:\MTGE\automation\exch_etl\dailyfile\\"+str(i).split(r"/")[-1],1,'windows')
+               if flag:   
+                   df=load_sail_template(filepath)
+                   index_mapping_sail= to_index(SAIL_FIELDS_MAPPING,df.columns.tolist(),"str")
+                   for df in groupbydataframe(df):
+                       deal =normalize(df,index_mapping_sail)
+                       excel_writer=writer(r"F:\MTGE\automation\exch_etl\issuance_new_deal_template.xlsx",r"F:\MTGE\automation\exch_etl\dailyfile\issuance_new_deal_template_"+deal["DealName"]+".XLSX",deal)
+                       excel_writer.write2clsinfo("Class Information")
+                       excel_writer.write2collainfo("Collateral Information")
+                       excel_writer.write2dealinfo("Deal Information")
+                       excel_writer.write2relatedPar("Related Parties")
+                       msger.send("SAIL Daily File - {0}".format(deal["DealName"].encode('utf-8')),'Please find attached deal',r"F:\MTGE\automation\exch_etl\dailyfile\issuance_new_deal_template_"+deal["DealName"]+".XLSX",deal["DealName"].encode('utf-8')+"_issuance_new_deal_template.XLSX")
+           except Exception as e:
+               print e.message
     

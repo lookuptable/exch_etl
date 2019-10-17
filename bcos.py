@@ -21,7 +21,7 @@ PROXIES = {
     'https': 'bproxy.tdmz1.bloomberg.com:80'
 }
 
-a
+
 def get(url, bcos_info, machine_env):
     
     try:
@@ -50,12 +50,13 @@ def download(bcos_key, bcos_info, output_file_path, env, machine_env):
     url = '{0}/{1}/{2}'.format(BCOS_URL[env], bcos_info.bucket_name, bcos_key)
     stream = get(url, bcos_info, machine_env)
     
+
     if stream is not None:            
-                with open('{0}/{1}'.format(output_file_path,bcos_key),'wb') as f:
+                with open(output_file_path,'wb') as f:
                     f.write(stream.read())                                
-                    print 'Success download to {0}/{1}'.format(output_file_path,bcos_key)
-                return True, "{0}/{1}".format(output_file_path,bcos_key)
-    return False    
+                    print 'Success download to'+ output_file_path
+                return True, output_file_path
+    return False,""    
     
 def search(bcos_key,bcos_info,env):
     
@@ -146,14 +147,13 @@ def monitor(bcos_key,bcos_info,freq,env,machine_env):
         print "monitoring ended!"
             
     
-if __name__ == "__main__":
-    bcosinfo=BcosInfo("gd-mtge","gd-mtge-bcos-account","1153f598e3e026a8e710d384dbd7483b0d3724d42c2bd937ccb83bb7f469ff85")
-    res=monitor("CN_NEWS_AUTOMATION",bcosinfo,900,1,'windows')
-    for i in res:
-        i=i.split("//")[-1]
-        print i
-        if scan(".*_-Template-.*.xlsx",i):
-            flag,filepath=download(i,bcosinfo,r"F:\MTGE\automation\exch_etl\\",1,'windows')
-            print filepath
+#if __name__ == "__main__":
+#    bcosinfo=BcosInfo("gd-mtge","gd-mtge-bcos-account","1153f598e3e026a8e710d384dbd7483b0d3724d42c2bd937ccb83bb7f469ff85")
+#    res=monitor("CN_NEWS_AUTOMATION",bcosinfo,60,1,'windows')
+#    for i in res:
+#        if scan(".*_-Template-.*.xlsx",i):
+#           flag,filepath=download(i,bcosinfo,r"F:\MTGE\automation\exch_etl\\"+str(i).split(r"/")[-1],1,'windows')
+#           print filepath
+   
 
-
+    
