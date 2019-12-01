@@ -50,6 +50,7 @@ NEW_ISS_TEMP_FIELDS_MAPPING = {"CLASS NAME": "ClsName",
 
 
 class Writer(object):
+  #yang: need docstring here
     def __init__(self, input_filepath, output_filepath, deal):
 
         self.input_filepath = input_filepath
@@ -59,10 +60,12 @@ class Writer(object):
         self.tranches = deal["tranches"] if deal.has_key("tranches") else None
 
     def __load(self, sheet):
+      #yang: unnecessary blank line
 
         return self.workbook[sheet]
 
     def __save(self):
+      #yang: unnecessary blank line
 
         self.workbook.save(self.output_filepath)
 

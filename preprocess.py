@@ -21,8 +21,7 @@ SAIL_FIELDS_MAPPING = {"Deal Full Name": "DealName",
                        "SETTLEMENT DATE": "SetDt",
                        "FIRST PAYMENT DATE": "FirPayDt",
                        "MATURITY DATE": "FinalMty",
-                       "Expected MATURITY DATE": "ExpMty",
-                       "ORIGINAL COUPON": "Cpn",
+                       "Expected MATURITY DATE": "ExpMty", "ORIGINAL COUPON": "Cpn",
                        "INTEREST FREQUENCY": "IntFreq",
                        "PRINCIPAL FREQUENCY": "PrinFreq",
                        "LISTING DATE": "LstDt",
@@ -37,8 +36,11 @@ TRANCH_COLS = ["ClsName", "ChineseID", "ChinaID",
 entity_mapper= EntityMapping()
 
 
-def scan(pattern, filename):
+def scan(pattern, filename): #yang: what about renaming this to "match"?
     """compare pattern with filname and return bool """
+    #yang: you can just do "return re.match(pattern, filename)"
+    # and since it only calls "re.match()", you can probably get rid of this
+    # function.
     if re.match(pattern, filename):
         return True
     return False
@@ -76,6 +78,7 @@ def groupby_dataframe(df, column="DealID"):
 
 def convert_freq(string):
     """convert Chinese freq to alphabetic code"""
+    # yang: it might be better to define a dict and just return dic.get(string)
     res = ""
     if string == u"季付":
         res = "Q"
@@ -90,6 +93,7 @@ def convert_freq(string):
 
 def convert_waterfallfreq(string):
     """convert freq from alphabetic code to numeric code"""
+    #yang: similar to the previous comment, define a dict and return dict.get(string)
     res = ""
     if string == "Q":
         res = 4
@@ -116,6 +120,7 @@ def return_clsdes(FirPayDt, FinalMty, ClsName):
 
 def convert_exch(string):
     """convert exchange in Chinese to code"""
+    # yang similar comment here
     res = ""
     if string == u"上海证券交易所":
         res = "Shanghai"
