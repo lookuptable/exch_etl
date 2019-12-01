@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Aug 13 17:23:03 2019
+Module used to send msg
 
-@author: sliu439
+Parameters
+---------
+SMTP_SERVER : str
+     smtp server
 """
 import smtplib
 from email.mime.text import MIMEText
+from email import Encoders
+
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
-from email import Encoders
 
 SMTP_SERVER="relay.corp.bloomberg.com"
 
@@ -20,6 +24,7 @@ class Msg(object):
         self.recipients = recipients
 
     def send(self, subject, body, attachment, filename):
+        """send msg with subject, body, attachment"""
         s = smtplib.SMTP(SMTP_SERVER)
         msg = MIMEMultipart()
         msg['Subject'] = subject

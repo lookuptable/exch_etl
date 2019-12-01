@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-import pandas as pd
 import re
+
+import pandas as pd
+
 from datetime import  datetime
 from entity_mapping import EntityMapping
 
@@ -36,12 +38,14 @@ entity_mapper= EntityMapping()
 
 
 def scan(pattern, filename):
+    """compare pattern with filname and return bool """
     if re.match(pattern, filename):
         return True
     return False
 
 
 def load_sail_template(filepath):
+    """load xlsx file and return dataframe"""
     if filepath.split(".")[-1].upper() == "XLSX":
         return pd.read_excel(filepath)
     else:
@@ -49,6 +53,7 @@ def load_sail_template(filepath):
 
 
 def to_index(mapping, headers, rtype):
+    """map headers and return index"""
     index_mapping = {}
     if rtype == "str":
         for key in mapping.keys():
@@ -65,12 +70,12 @@ def to_index(mapping, headers, rtype):
 
 
 def groupby_dataframe(df, column="DealID"):
-    # for key, value in df.groupby(column):
-    #    yield value.reset_index(drop=True)
+    """group dataframe by column and return grouped dataframe"""
     return (value.reset_index(drop=True) for key, value in df.groupby(column))
 
 
 def convert_freq(string):
+    """convert Chinese freq to alphabetic code"""
     res = ""
     if string == u"季付":
         res = "Q"
@@ -84,6 +89,7 @@ def convert_freq(string):
 
 
 def convert_waterfallfreq(string):
+    """convert freq from alphabetic code to numeric code"""
     res = ""
     if string == "Q":
         res = 4
@@ -97,6 +103,7 @@ def convert_waterfallfreq(string):
 
 
 def return_clsdes(FirPayDt, FinalMty, ClsName):
+    """use classname,final mty and first payment dt to return class description"""
     res = ""
     if ClsName.upper() == "SUB":
         res = "SUB"
@@ -108,6 +115,7 @@ def return_clsdes(FirPayDt, FinalMty, ClsName):
 
 
 def convert_exch(string):
+    """convert exchange in Chinese to code"""
     res = ""
     if string == u"上海证券交易所":
         res = "Shanghai"
@@ -119,10 +127,12 @@ def convert_exch(string):
 
 
 def map_entity(string):
+    """map Chinese entity name to English entity name and numeric code"""
     return entity_mapper.get_eng_name(string)
 
 
 def normalize(df, index_mapping):
+    """convert dataframe to dict: deal """
     df = df.fillna("")
     deal = {}
     tranches = []

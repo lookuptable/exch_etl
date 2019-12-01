@@ -1,11 +1,22 @@
 # -*- coding: utf-8 -*-
+"""
+
+This module is used to write information into excel
+
+Attributes
+----------
+NEW_ISS_TEMP_FIXED_FIELDS : dict
+    fixed-value fields on new_issuance_template
+NEW_ISS_TEMP_FIELDS_MAPPING : dict
+    mapping of fields on new_issuance_template to fields on sail template
+
+"""
+
 import pandas as pd
+
 from datetime import datetime
 from openpyxl import load_workbook
-
-
 from preprocess import to_index, convert_waterfallfreq
-
 
 NEW_ISS_TEMP_FIXED_FIELDS = {"COLLATERAL GROUP": "all",
                              "CURRENCY": "CNY",
@@ -39,7 +50,6 @@ NEW_ISS_TEMP_FIELDS_MAPPING = {"CLASS NAME": "ClsName",
 
 
 class Writer(object):
-
     def __init__(self, input_filepath, output_filepath, deal):
 
         self.input_filepath = input_filepath
@@ -57,7 +67,7 @@ class Writer(object):
         self.workbook.save(self.output_filepath)
 
     def write2clsinfo(self, sheet):
-
+        """write to classinfo sheet"""
         worksheet = self.__load(sheet)
         fields_name = [cell.value for cell in worksheet['A']]
         index_mapping = to_index(NEW_ISS_TEMP_FIELDS_MAPPING, fields_name, "list")
@@ -80,7 +90,7 @@ class Writer(object):
         self.__save()
 
     def write2collainfo(self, sheet):
-
+        """write to collateralinfo sheet"""
         worksheet = self.__load(sheet)
         if self.deal.has_key("DealAmount"):
             worksheet.cell(5, 2).value = self.deal["DealAmount"]
@@ -88,7 +98,7 @@ class Writer(object):
         self.__save()
 
     def write2dealinfo(self, sheet):
-
+        """write to dealinfo sheet"""
         worksheet = self.__load(sheet)
         worksheet.cell(8, 2).value = "abs"
         if self.tranches:
@@ -99,7 +109,7 @@ class Writer(object):
         self.__save()
 
     def write2relatedPar(self, sheet):
-
+        """write to relateParty sheet"""
         worksheet = self.__load(sheet)
         if self.deal.has_key("LM"):
             for index, LM in enumerate(self.deal['LM']):

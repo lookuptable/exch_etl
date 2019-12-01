@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-
+"""
+Module used to for find string similarities (TF-IDF)
+"""
 import pandas as pd
+
 import jieba
 from gensim import corpora, models, similarities
 
@@ -35,7 +38,7 @@ class EntityMapping():
         return sim[0][0] if len(sim) > 0 else None
 
     def get_eng_name(self, key):
-
+        """take chinese name and return english name and code"""
         i = self.__tf_idf(key)
         if i:
             return '{0}/{1}'.format(str(self.mapping.iloc[i]["english_name"]), str(self.mapping.iloc[i]["code"]))
