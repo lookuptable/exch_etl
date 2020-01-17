@@ -10,7 +10,8 @@ from gensim import corpora, models, similarities
 MAPPINGFILE="mapping.xlsx"
 COL="chinese_name"
 
-class EntityMapping():
+class EntityMapping(): #yang should this inherit object?
+  #yang: need docstring
 
     def __init__(self):
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-
+#yang: you don't need a new line here
 This module is used to connect with bcos-bucket,which is web share dirve
 
 Attributes
@@ -8,7 +8,7 @@ Attributes
 BCOSINFO : namedtuple
     variable for bcos default config
 BCOS_URL : list
-    const for different bcos urls:dev,prod
+    const for different bcos urls:dev,prod #yang add whitespace before "dev"
 PROXIES: dict
     const for different proxies: http,https
 """
@@ -26,15 +26,18 @@ BCOS_URL = ['https://bcos.dev.blpprofessional.com:8443/v1',
 PROXIES = {
     'http': 'bproxy.tdmz1.bloomberg.com:80',
     'https': 'bproxy.tdmz1.bloomberg.com:80'
+    #yang the URLs for http and https are identical, is this intended?
 }
 
 
 class Environment(object):
+  #yang: add docstring for class
     Dev = 0
     Prod = 1
 
 
 class Bcos(object):
+  #yang: add docstring for class
     def __init__(self, bcos_info, machine_env, env):
         self.bcos_info = bcos_info
         self.machine_env = machine_env
@@ -63,6 +66,7 @@ class Bcos(object):
             proxies = {} if self.machine_env == "unix" else PROXIES
             response = requests.get(url, headers=header, proxies=proxies)
             if response.status_code == 200:
+              #yang: what if status code is not 200? do you need to handle it?
                 return BytesIO(response.content)
         except Exception as ex:
             print("Failed to download: Error: " + str(ex.message))
@@ -70,7 +74,7 @@ class Bcos(object):
 
     def download(self, bcos_key, output_filepath):
         """
-         function to download file to local path
+         function to download file to local path #yang: extra whitespace before "function"
 
         Parameters
         ----------
@@ -107,7 +111,7 @@ class Bcos(object):
         bcos_dict : dict
              key : matching file name
              value: matching file in BytesIO
-        bcos_likst : list
+        bcos_likst : list #yang "likst" should be just "list"
              list of matching file names
         """
         params = {'prefix': bcos_key} if bcos_key is not None else {}
@@ -143,14 +147,14 @@ class Bcos(object):
 
     def monitor(self, bcos_key, freq):
         """
-        function used to monitor bcos on frequent basis
+        function used to monitor bcos on frequent basis #yang: "monitor bcos periodically"
 
         Parameters
         ----------
         bcos_key : str
             keyword used to search for mapping item on bcos
         freq : int
-            frequency to search for bcos
+          frequency to search for bcos #yang: "the number of seconds between two consecutive searches for bcos"
         Returns:
         ----------
         content[0].text : generator
@@ -182,5 +186,6 @@ class Bcos(object):
                         yield content[0].text
                     params['marker'] = contents[-1][0].text
                     time.sleep(freq)
+                    #yang: can you "time.sleep()" outside the if/else block?
         except KeyboardInterrupt:
             print "monitoring ended!"
